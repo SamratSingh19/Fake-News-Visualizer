@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="container" id="container">
+  <canvas id="canvas"></canvas> 
+ </div>
+<div class="adjContainer">
+    <h3 class="adjMatrix">Adjacency Matrix : <%= adjList%></h3>
+    
+    
+    <form action="/showGraphRedness" method="POST">
+      <input type="hidden" name="adjList" id="adjInput">
+      <input type="hidden" name="nodes" id="nodesInput"> 
+      <br>
+      <button class="showFNVbtn" type="submit">Show Fake News Visualizer</button>
+    </form>
+</div>
+    <script>
+        
+        let adj = JSON.parse(`<%= (adjList) %>`); 
+        const container = document.getElementById("container");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = container.clientWidth;
+canvas.height = container.clientHeight;
+
+const N = adj.length;
+const radius = 20;
+const nodes = [];
+
+// Function to check overlap
+function isTooClose(x, y) {
+  for (let node of nodes) {
+    let dx = node.x - x;
+    let dy = node.y - y;
+    let dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < 50 * 2) return true;
+  }
+  return false;
+}
+
+// Generate non-overlapping random positions
+for (let i = 0; i < N; i++)
+{
+  let x, y;
+
+  do {
+    x = Math.random() * (canvas.width - 100) + 50;
+    y = Math.random() * (canvas.height - 100) + 50;
+  } while (isTooClose(x, y));
+
+  nodes.push({ x, y });
+
+  // create node div
+  let div = document.createElement("div");
+  div.className = "node";
+  div.innerText = i;
+
+  div.style.left = x-20 + "px";
+  div.style.top = y-20 + "px";
+
+  container.appendChild(div);
+}
+
+// Draw directed edges with arrows
+function drawArrow(from, to, weight, offset = 0)
+{
+  const headlen = 10;
+
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.sqrt(dx*dx + dy*dy);
+
+  // unit direction vector
+  const ux = dx / length;
+  const uy = dy / length;
+
+  // perpendicular vector (IMPORTANT)
+  const px = -uy;
+  const py = ux;
+
+  // apply offset
+  const offsetX = px * offset;
+  const offsetY = py * offset;
+
+  const startX = from.x + radius * ux + offsetX;
+  const startY = from.y + radius * uy + offsetY;
+
+  const endX = to.x - radius * ux + offsetX;
+  const endY = to.y - radius * uy + offsetY;
+
+  const angle = Math.atan2(endY - startY, endX - startX);
+
+  // line
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+
+  // arrow head
+  ctx.beginPath();
+  ctx.moveTo(endX, endY);
+  ctx.lineTo(
+    endX - headlen * Math.cos(angle - Math.PI/6),
+    endY - headlen * Math.sin(angle - Math.PI/6)
+  );
+  ctx.lineTo(
+    endX - headlen * Math.cos(angle + Math.PI/6),
+    endY - headlen * Math.sin(angle + Math.PI/6)
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  // weight
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2;
+
+  ctx.fillStyle = "red";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText(weight, midX, midY);
+  ctx.fillStyle = "black";
+}
+       
+// draw all edges
+for (let i = 0; i < N; i++) {
+  for (let j = i + 1; j < N; j++) {   // only upper triangle, no duplicates
+    const hasIJ = adj[i][j] !== 0;
+    const hasJI = adj[j][i] !== 0;
+
+    if (hasIJ && hasJI) {
+      // bidirectional — offset both so they don't overlap
+      drawArrow(nodes[i], nodes[j], adj[i][j], 12);
+      drawArrow(nodes[j], nodes[i], adj[j][i], 12);  // ← BOTH +12, each offsets from its own direction
+    } else if (hasIJ) {
+      drawArrow(nodes[i], nodes[j], adj[i][j], 0);
+    } else if (hasJI) {
+      drawArrow(nodes[j], nodes[i], adj[j][i], 0);
+    }
+  }
+}
+  
+    document.querySelector("form").addEventListener("submit", () => {
+    document.getElementById("adjInput").value = JSON.stringify(adj);
+    document.getElementById("nodesInput").value = JSON.stringify(nodes);
+});
+
+  </script>
+
+</body>
+</html>

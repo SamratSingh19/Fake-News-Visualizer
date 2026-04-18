@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+     <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+      <%- %>
+      <div class="container" id="container">
+  <canvas id="canvas" style="width:100%;"></canvas> 
+ </div>
+  
+  <div class="controls">
+    <p>Enter a start pointer</p>
+    <input id="num" type="number">
+  
+    
+    <button class="compute" onclick="func(document.getElementById('num').value)">Compute</button>
+    <form action="/showEdgesList" method="POST">
+      <input type="hidden" name="adjList" id="adjInput">
+      <input type="hidden" name="nodes" id="nodesInput"> 
+      <input type="hidden" name="sourceNode" id="sourceNode">
+    <button class="showEdges" type="submit">Show Edges Order</button>
+    </form>
+
+    </div>
+    <script>
+      // console.log(22);
+let adj = JSON.parse(`<%= (adjList) %>`); 
+let nodes = JSON.parse(`<%- (nodes) %>`); 
+
+     
+     let n=adj.length;
+     let S_ar=[]
+     for(let i=0;i<n;i++)
+     {let S=0;
+        for(let j=0;j<n;j++)
+        {S+=adj[i][j];}
+        S_ar.push(S);
+     }
+     
+     let adj2 = Array.from({length: n}, () => Array(n).fill(0));
+   //   let adj3 = Array.from({ length: n }, () => 0);
+   //   let visited = Array.from({length: n}, () => Array(n).fill(0));
+     for(let i=0;i<n;i++)
+     {
+        for(let j=0;j<n;j++)
+        {adj2[i][j]=adj[i][j]/S_ar[i];}
+     }
+     
+     function func(startingNode)
+     {
+      
+      let actual_prob=fakeNewsSpreadProbability(adj2,startingNode);
+
+       const container = document.getElementById("container");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = container.offsetWidth;
+canvas.height = container.offsetHeight;
+
+const N = adj.length;
+const radius = 20;
+
+//  Generate non-overlapping random positions
+for (let i = 0; i < N; i++) {
+  
+  let div = document.createElement("div");
+  div.classList.add("node");div.classList.add("w");
+  div.innerText = i;
+
+  div.style.left = nodes[i].x-20 + "px";
+  div.style.top = nodes[i].y-20 + "px";
+  div.style.backgroundColor=`rgb(${actual_prob[i]*255},0,0)`;
+  if(i===Number(startingNode)){div.style.border="2.5px solid black";}
+
+  container.appendChild(div);
+
+  let label = document.createElement("div");
+  label.classList.add("node-label");
+  label.innerText = rround(actual_prob[i]*100,2)+"%";  
+  label.style.left = nodes[i].x - 20 + "px";
+  label.style.top = nodes[i].y - 44 + "px";    
+  label.style.color = `rgb(${actual_prob[i] * 255}, 0, 0)`;
+
+  container.appendChild(label);
+}
+
+//  Draw directed edges with arrows
+function drawArrow(from, to, weight, offset = 0) {
+  const headlen = 10;
+
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const length = Math.sqrt(dx*dx + dy*dy);
+
+  // unit direction vector
+  const ux = dx / length;
+  const uy = dy / length;
+
+  // perpendicular vector (IMPORTANT)
+  const px = -uy;
+  const py = ux;
+
+  // apply offset
+  const offsetX = px * offset;
+  const offsetY = py * offset;
+
+  const startX = from.x + radius * ux + offsetX;
+  const startY = from.y + radius * uy + offsetY;
+
+  const endX = to.x - radius * ux + offsetX;
+  const endY = to.y - radius * uy + offsetY;
+
+  const angle = Math.atan2(endY - startY, endX - startX);
+
+  // line
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+
+  // arrow head
+  ctx.beginPath();
+  ctx.moveTo(endX, endY);
+  ctx.lineTo(
+    endX - headlen * Math.cos(angle - Math.PI/6),
+    endY - headlen * Math.sin(angle - Math.PI/6)
+  );
+  ctx.lineTo(
+    endX - headlen * Math.cos(angle + Math.PI/6),
+    endY - headlen * Math.sin(angle + Math.PI/6)
+  );
+  ctx.closePath();
+  ctx.fill();
+
+  // weight
+  const midX = (startX + endX) / 2;
+  const midY = (startY + endY) / 2;
+
+  ctx.fillStyle = "red";
+  ctx.font = "bold 18px Arial";
+  ctx.fillText(weight, midX, midY);
+  ctx.fillStyle = "black";
+  }
+       
+// draw all edges
+for (let i = 0; i < N; i++) {
+  for (let j = i + 1; j < N; j++) {   // only upper triangle, no duplicates
+    const hasIJ = adj[i][j] !== 0;
+    const hasJI = adj[j][i] !== 0;
+
+    if (hasIJ && hasJI) {
+      // bidirectional — offset both so they don't overlap
+      drawArrow(nodes[i], nodes[j], adj[i][j], 12);
+      drawArrow(nodes[j], nodes[i], adj[j][i], 12);  // ← BOTH +12, each offsets from its own direction
+    } else if (hasIJ) {
+      drawArrow(nodes[i], nodes[j], adj[i][j], 0);
+    } else if (hasJI) {
+      drawArrow(nodes[j], nodes[i], adj[j][i], 0);
+    }
+  }
+}
+  
+    
+     }
+      
+
+   function fakeNewsSpreadProbability(adjMatrix, sourceIndex) {
+  const N = adjMatrix.length;
+  const prob = Array(N).fill(0);
+  prob[sourceIndex] = 1.0;
+
+  const blockedEdges = new Set(); // stores "from->to" as permanently blocked return edges
+
+  const queue = [];
+
+  // Enqueue all neighbors of source and block their return edges
+  for (let to = 0; to < N; to++) {
+    if (adjMatrix[sourceIndex][to] > 0) {
+      queue.push({ node: to, from: sourceIndex, p: adjMatrix[sourceIndex][to] });
+      blockedEdges.add(`${to}->${sourceIndex}`); // block N_to from ever sending back to source
+    }
+  }
+
+  while (queue.length > 0) {
+    const { node, from, p } = queue.shift();
+
+    // Skip if this edge was somehow enqueued before being blocked
+    if (blockedEdges.has(`${from}->${node}`)) continue;
+
+    // Skip negligible probabilities to prevent infinite propagation
+    if (p < 1e-9) continue;
+
+    // Update cumulative probability using independent path formula
+    prob[node] = Math.min(1, prob[node] + p * (1 - prob[node]));
+
+    // Enqueue valid neighbors and block their return edges
+    for (let to = 0; to < N; to++) {
+      if (adjMatrix[node][to] === 0) continue;
+
+      const forwardKey = `${node}->${to}`;
+      const returnKey = `${to}->${node}`;
+
+      if (blockedEdges.has(forwardKey)) continue; // this path is blocked
+
+      const nextP = p * adjMatrix[node][to];
+      if (nextP < 1e-9) continue;
+
+      queue.push({ node: to, from: node, p: nextP });
+      blockedEdges.add(returnKey); // block the return of this newly traveled edge
+    }
+  }
+
+  return prob;
+}
+
+
+document.querySelector("form").addEventListener("submit", () => {
+    document.getElementById("adjInput").value = JSON.stringify(adj);
+    document.getElementById("nodesInput").value = JSON.stringify(nodes);
+    document.getElementById("sourceNode").value = JSON.stringify(document.getElementById('num').value);
+});
+
+  function rround(x, k) {
+     return (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFixed(k);
+}
+
+
+
+   </script>
+</body>
+</html>

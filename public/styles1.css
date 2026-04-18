@@ -1,0 +1,194 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; */
+}
+
+/* Body */
+body {
+  background: #f4f6f9;
+  padding:0 20px 40px 20px;
+  color: #333;
+}
+
+/* Main container */
+.container {
+  position: relative;
+  width: 90vw;
+  height: 80vh;
+  overflow: hidden;
+  border-radius: 5px;
+  border:1px solid black;
+  margin:20px auto 20px auto;
+  /* align-self: auto; */
+}
+
+/* Canvas */
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* width :calc(100%-40px);
+  height :calc(100%-40px); */
+}
+
+/* Nodes */
+.node {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+border:2px solid black;
+  /* box-shadow: 0 3px 10px rgba(0,0,0,0.2); */
+  transition: transform 0.2s;
+}
+
+.node:hover {
+  transform: scale(1.1);
+}
+
+/* Labels */
+.node-label {
+  position: absolute;
+  /* font-size: 13px;
+  font-weight: 600; */
+  background-color: rgba(255,255,255,1);
+  width: 60px;
+  text-align: center;
+  /* border:1px solid black; */
+}
+
+/* Bottom section layout */
+.probListTable {
+  display: flex;
+  gap: 20px;
+}
+
+/* Edge list */
+#edgesList {
+  flex: 1;
+  max-height: 300px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Each edge row */
+#edgesList p {
+  display:grid;
+  grid-template-columns: 1fr 1fr 0.2fr 0.2fr;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  transition: 0.2s;
+}
+
+#edgesList p:hover {
+  background: #eef2f7;
+}
+
+/* Buttons */
+button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-left: 5px;
+  transition: 0.2s;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Remove button */
+button[class^="r"] {
+  background: #ff4d4d;
+  color: white;
+}
+
+/* Add button */
+button[class^="a"] {
+  background: #4caf50;
+  color: white;
+}
+
+/* Table */
+/* .probTable {
+  flex: 1;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* Table cells 
+.probTable > div {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+  font-size: 14px;
+} */
+.probTable {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0; 
+  align-content: start; 
+  background: #fff;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.probTable > div {
+  padding:17px;
+  height: 30px;
+  border: 1px solid black;
+  display:flex;
+ justify-content: center;
+ align-items: center;
+
+}
+
+/* Header row */
+.probTable > div:nth-child(-n+3) {
+  background: #2c3e50;
+  color: white;
+  font-weight: bold;
+}
+
+/* Alternating rows */
+.probTable > div:nth-child(6n+4),
+.probTable > div:nth-child(6n+5),
+.probTable > div:nth-child(6n+6) {
+  background: #f9fbfd;
+}
+
+/* Scrollbar styling */
+#edgesList::-webkit-scrollbar {
+  width: 6px;
+}
+
+#edgesList::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}

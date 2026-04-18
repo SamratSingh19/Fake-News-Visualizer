@@ -1,0 +1,325 @@
+/* styles.css */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body{
+  background-color:#f4f6f9;;
+}
+.container {
+  position: relative;
+  width: 90vw;
+  height: 80vh;
+  overflow: hidden;
+  border-radius: 5px;
+  border:1px solid black;
+  margin:20px auto 20px auto;
+  /* align-self: auto; */
+}
+#canvas
+{
+  background: white;
+}
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* width :calc(100%-40px);
+  height :calc(100%-40px); */
+}
+
+.node {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 2px solid black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 1;
+  transform: none; /* no extra offset needed */
+}
+.w
+{color:white;}
+
+/*showEdgesList.ejs*/
+.probListTable
+{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  /* grid-auto-flow: column; */
+
+}
+.probTable {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0; 
+  align-content: start; 
+}
+
+.probTable > div {
+  height: 25px;
+  border: 1px solid black;
+  align-content: center;
+  text-align: center;
+}
+
+.node-label {
+  width:50px;
+    position: absolute;
+    font-size: 17px;
+    font-weight: bold;
+    pointer-events: none;
+    white-space: nowrap;
+    background-color: rgba(255,255,255,0.7);
+}
+
+/*index.ejs*/
+/* Wrapper (recommended) */
+.entryOptions {
+  max-width: 400px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* Text */
+.entryOptions p {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* Links styled as buttons */
+.entryOptions a {
+  display: inline-block;
+  margin: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  transition: 0.25s;
+}
+
+/* First link */
+.entryOptions a[href="/enterMatrix"] {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+/* Second link */
+.entryOptions a[href="/enterText"] {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+/* Hover effect */
+.entryOptions a:hover {
+  /* transform: translateY(-2px); */
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* Click effect */
+.entryOptions a:active {
+  transform: scale(0.96);
+}
+
+
+/*enterText.ejs*/
+/* Wrapper (recommended) */
+.formGroup {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 18px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Label text */
+.enterMatrix {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Textarea */
+textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+  transition: 0.2s;
+  font-family: monospace;
+  resize: vertical;
+}
+
+/* Focus effect */
+textarea:focus {
+  border-color: #ff6a00;
+  box-shadow: 0 0 6px rgba(255, 106, 0, 0.3);
+}
+
+/* Button */
+button.enterMatrix {
+  width: fit-content;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+/* Hover */
+button.enterMatrix:hover {
+  /* transform: translateY(-2px); */
+  box-shadow: 0 0 15px rgba(33, 150, 243, 0.3);
+}
+
+/* Click */
+button.enterMatrix:active {
+  transform: scale(0.97);
+}
+
+
+
+/*showGraph.ejs*/
+/* Wrapper (optional but recommended) */
+.adjContainer {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 26px 0 10px 0;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* Adjacency matrix text */
+.adjMatrix {
+  margin:20px 0 10px 0;
+  display:inline;
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  background: #f8fafc;
+  padding: 10px;
+  border-radius: 8px;
+  word-break: break-all;       /* prevents overflow */
+  overflow-x: auto;
+  /* font-family: monospace; */
+  border: 1px solid #eee;
+}
+
+/* Button */
+.showFNVbtn {
+  margin:10px 0 10px 0;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #ff6a00, #ff3d00);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+/* Hover effect */
+.showFNVbtn:hover {
+  /* transform: translateY(-2px); */
+  box-shadow: 0 0 10px rgba(255, 61, 0, 0.3);
+}
+
+/* Click effect */
+.showFNVbtn:active {
+  transform: scale(0.97);
+}
+
+
+/* showGraphRedness.ejs */
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin:0 auto 20px auto;
+  background: #ffffff;
+  padding: 12px 16px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.219);
+  width: fit-content;
+}
+
+/* Label text */
+.controls p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #444;
+}
+
+/* Input field */
+#num {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+/* Input focus */
+#num:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+/* Buttons */
+.compute, .showEdges {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+/* Compute button */
+.compute {
+  background: #2196f3;
+  color: white;
+}
+
+.compute:hover {
+  background: #1976d2;
+}
+
+/* Show edges button */
+.showEdges {
+  background: #9c27b0;
+  color: white;
+}
+
+.showEdges:hover {
+  background: #7b1fa2;
+}
+
+
+

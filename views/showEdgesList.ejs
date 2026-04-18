@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="styles1.css">
+</head>
+<body>
+
+      <div class="container" id="container">
+         <canvas id="canvas"></canvas>
+      </div>
+   <div class="probListTable">   
+    <div id="edgesList">
+      
+    </div>
+
+   
+    <div class="probTable" style="display:grid;grid-template-columns:1fr 1fr 1fr">
+      <div>Edge Removed/Added</div>
+      <div>Total decrease/increase in probability</div>
+      <div>Futher decrease/increase from last step</div>
+    </div>
+   </div>
+
+    <script>
+      let disappearedNodes=[]
+      const radius = 20;
+      const container = document.getElementById("container");
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+let adj = JSON.parse(`<%= (adjList) %>`); 
+let nodes = JSON.parse(`<%- (nodes) %>`); 
+let source = JSON.parse(`<%- (sourceNode) %>`); 
+     
+     let n=adj.length;
+     let S_ar=[]
+     for(let i=0;i<n;i++)
+     {let S=0;
+        for(let j=0;j<n;j++)
+        {S+=adj[i][j];}
+        S_ar.push(S);
+     }
+     
+     let adj2 = Array.from({length: n}, () => Array(n).fill(0));
+
+   //   let adj3 = Array.from({ length: n }, () => 0);
+   //   let visited = Array.from({length: n}, () => Array(n).fill(0));
+     for(let i=0;i<n;i++)
+     {
+        for(let j=0;j<n;j++)
+        {adj2[i][j]=adj[i][j]/S_ar[i];}
+     }
+     let actual_prob=fakeNewsSpreadProbability(adj2,source);
+     let prob_list=[];
+     
+     func(Number(source));
+     function func(startingNode)
+     {
+       
+      let probIncDecArray=[]; 
+      let probIncDecSorted=[];
+      for(let i=0;i<n;i++)
+      {
+         for(let j=0;j<n;j++)
+         {
+
+               let adj3=JSON.parse(JSON.stringify(adj2));
+               // console.log(prob_list);
+               adj3[i][j]=0;
+         
+               prob_list=fakeNewsSpreadProbability(adj3,startingNode);
+                for(let k=0;k<prob_list.length;k++)
+               {
+                  // console.log(prob_list[k],actual_prob[k])
+                  probIncDecArray[k]=((prob_list[k]-actual_prob[k])/actual_prob[k]);
+                  
+               }
+               // console.log(probIncDecArray);
+               probIncDecSorted.push([sum(probIncDecArray)/probIncDecArray.length,[...probIncDecArray],i,j]);
+            
+         }
+      }
+      
+      probIncDecSorted.sort((a, b) => a[0] - b[0]);// probIncDecSorted stores the list of edges, and sorts them
+
+      let edgesList=document.getElementById("edgesList");
+      probIncDecSorted.forEach((e)=>
+      {
+         if(e[2]!==e[3])
+         {
+            let edge=document.createElement("div");
+            let prob=document.createElement("div");
+            let btn=document.createElement("button");
+            let btn2=document.createElement("button");//btn.dataset.i=e[2];btn.dataset.j=e[3];
+            btn.innerText="Remove";
+            btn.setAttribute("onclick",`disappearNode(${e[2]},${e[3]});`);
+            btn.classList.add("r"+e[2]+e[3]);
+            btn2.innerText="Add";
+            btn2.setAttribute("onclick",`appearNode(${e[2]},${e[3]});`);
+            btn2.classList.add("a"+e[2]+e[3]);
+            btn2.disabled=true;
+
+            edge.innerText=e[2]+" → "+e[3];
+            prob.innerText=(e[0]>0)?(rround(e[0])*100,4)+"% increase":(e[0]<0?(rround(-e[0]*100,4))+"% decrease":"No change");
+            let p=document.createElement("p");
+            
+            p.append(edge,prob,btn,btn2);
+            edgesList.appendChild(p);
+         }
+      })
+      drawGraph();
+     }
+
+     function drawGraph(probList=actual_prob)
+     {
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+
+
+      const N = adj.length;
+
+
+      // Generate non-overlapping random positions
+      for (let i = 0; i < N; i++)
+      {
+      
+         let div = document.createElement("div");
+         div.classList.add("node");div.classList.add("w");
+         div.innerText = i;
+
+         div.style.left = nodes[i].x-20 + "px";
+         div.style.top = nodes[i].y-20 + "px";
+         div.style.backgroundColor=`rgb(${probList[i]*255},0,0)`;
+         if(i===Number(source)){div.style.border="2.5px solid black";}
+
+         container.appendChild(div);
+
+         let label = document.createElement("div");
+         label.classList.add("node-label");
+         label.innerText = rround(probList[i]*100,2)+"%";  
+         label.style.left = nodes[i].x - 20 + "px";
+         label.style.top = nodes[i].y - 44 + "px";    
+         label.style.color = `rgb(${probList[i] * 255}, 0, 0)`;
+
+         container.appendChild(label);
+      }
+      
+
+      for (let i = 0; i < N; i++)
+      {
+         for (let j = i + 1; j < N; j++)
+         {  // Only upper triangle, no duplicates
+            const hasIJ = adj[i][j] !== 0;
+            const hasJI = adj[j][i] !== 0;
+
+            let notExistsXY = disappearedNodes.some(a => a[0] === i && a[1] === j);
+            let notExistsYX = disappearedNodes.some(a => a[0] === j && a[1] === i);
+            let cXY,cYX;cXY=cYX="black";
+            if(notExistsXY)cXY="grey";
+            if(notExistsYX)cYX="grey";
+
+            if (hasIJ && hasJI)
+            {
+               // bidirectional — offset both so they don't overlap
+               drawArrow(nodes[i], nodes[j], adj[i][j], 12,cXY);
+               drawArrow(nodes[j], nodes[i], adj[j][i], 12,cYX);  // ← BOTH +12, each offsets from its own direction
+            } else if (hasIJ) {
+               drawArrow(nodes[i], nodes[j], adj[i][j], 0,cXY);
+            } else if (hasJI) {
+               drawArrow(nodes[j], nodes[i], adj[j][i], 0,cYX);
+            }
+         
+         }
+      }
+   }
+
+   function drawArrow(from, to, weight, offset = 0,COL="black")
+   {
+      const headlen = 10;
+
+      const dx = to.x - from.x;
+      const dy = to.y - from.y;
+      const length = Math.sqrt(dx*dx + dy*dy);
+
+      // unit direction vector
+      const ux = dx / length;
+      const uy = dy / length;
+
+      // perpendicular vector (IMPORTANT)
+      const px = -uy;
+      const py = ux;
+
+      // apply offset
+      const offsetX = px * offset;
+      const offsetY = py * offset;
+
+      const startX = from.x + radius * ux + offsetX;
+      const startY = from.y + radius * uy + offsetY;
+
+      const endX = to.x - radius * ux + offsetX;
+      const endY = to.y - radius * uy + offsetY;
+
+      const angle = Math.atan2(endY - startY, endX - startX);
+
+      // line
+      ctx.strokeStyle = COL;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // arrow head
+      ctx.strokeStyle = COL;
+      ctx.fillStyle = COL; 
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(
+         endX - headlen * Math.cos(angle - Math.PI/6),
+         endY - headlen * Math.sin(angle - Math.PI/6)
+      );
+      ctx.lineTo(
+         endX - headlen * Math.cos(angle + Math.PI/6),
+         endY - headlen * Math.sin(angle + Math.PI/6)
+      );
+      ctx.closePath();
+      ctx.fill();
+
+      // weight
+      const midX = (startX + endX) / 2;
+      const midY = (startY + endY) / 2;
+
+      ctx.fillStyle = "red";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText(weight, midX, midY);
+      ctx.fillStyle = "black";
+   }
+       
+
+   function disappearNode(i,j)
+   {
+      disappearedNodes.push([i,j]);
+      let adj5 = JSON.parse(JSON.stringify(adj2));
+      disappearedNodes.forEach((e)=>{
+         adj5[e[0]][e[1]]=0;
+      });
+      
+      drawGraph(fakeNewsSpreadProbability(adj5, source));
+      updateTable("removed",i,j);
+      //function to display probabilities
+      document.querySelector(".r"+i+j).disabled=true;
+      document.querySelector(".a"+i+j).disabled=false;
+   }
+   function appearNode(i,j)
+   {
+      let index = disappearedNodes.findIndex(a => a[0] === i && a[1] === j);
+
+      if (index !== -1)
+      {
+         disappearedNodes.splice(index, 1);
+         let adj5 = JSON.parse(JSON.stringify(adj2));
+         disappearedNodes.forEach((e)=>{
+         adj5[e[0]][e[1]]=0; });
+      
+         drawGraph(fakeNewsSpreadProbability(adj5, source));
+         updateTable("added ",i,j);
+         document.querySelector(".r"+i+j).disabled=false;
+         document.querySelector(".a"+i+j).disabled=true;
+      }
+   }
+   let c=0,x,oldX;
+   function updateTable(str,I,J)
+   {
+      c++;
+      let table=document.querySelector(".probTable");
+      let adj4=JSON.parse(JSON.stringify(adj2)),i,j;
+      disappearedNodes.forEach((e)=>{
+         i=e[0],j=e[1];
+         adj4[i][j]=0;
+      });
+
+      let prob_list=fakeNewsSpreadProbability(adj4,source),probIncDecArray=[];
+
+      for(let k=0;k<prob_list.length;k++)
+      {
+            probIncDecArray[k]=((prob_list[k]-actual_prob[k])/actual_prob[k]);      
+      }
+
+      x=sum(probIncDecArray)/probIncDecArray.length;
+      let div1=document.createElement("div");
+      let div2=document.createElement("div");
+      let div3=document.createElement("div");
+
+      div1.innerText=I+" → "+J+" "+str;
+      
+      div2.innerText=(x>0)?rround((x*100),4)+"% increase":(x<0?rround((-x*100),4)+"% decrease":"No change");
+      if(c===1)
+      div3.innerText="—————";
+      else
+      {
+         let x1=((x-oldX)/(1+x))*100;
+         x1=rround(x1,4);
+         div3.innerText=(x1>0)?(x1)+"% increase":(x1<0?(-x1)+"% decrease":"No change");
+      }
+      oldX=x;
+      
+      table.append(div1,div2,div3);
+   }
+   
+  function fakeNewsSpreadProbability(adjMatrix, sourceIndex) {
+  const N = adjMatrix.length;
+  const prob = Array(N).fill(0);
+  prob[sourceIndex] = 1.0;
+
+  const blockedEdges = new Set(); // stores "from->to" as permanently blocked return edges
+
+  const queue = [];
+
+  // Enqueue all neighbors of source and block their return edges
+  for (let to = 0; to < N; to++) {
+    if (adjMatrix[sourceIndex][to] > 0) {
+      queue.push({ node: to, from: sourceIndex, p: adjMatrix[sourceIndex][to] });
+      blockedEdges.add(`${to}->${sourceIndex}`); // block N_to from ever sending back to source
+    }
+  }
+
+  while (queue.length > 0) {
+    const { node, from, p } = queue.shift();
+
+    // Skip if this edge was somehow enqueued before being blocked
+    if (blockedEdges.has(`${from}->${node}`)) continue;
+
+    // Skip negligible probabilities to prevent infinite propagation
+    if (p < 1e-9) continue;
+
+    // Update cumulative probability using independent path formula
+    prob[node] = Math.min(1, prob[node] + p * (1 - prob[node]));
+
+    // Enqueue valid neighbors and block their return edges
+    for (let to = 0; to < N; to++) {
+      if (adjMatrix[node][to] === 0) continue;
+
+      const forwardKey = `${node}->${to}`;
+      const returnKey = `${to}->${node}`;
+
+      if (blockedEdges.has(forwardKey)) continue; // this path is blocked
+
+      const nextP = p * adjMatrix[node][to];
+      if (nextP < 1e-9) continue;
+
+      queue.push({ node: to, from: node, p: nextP });
+      blockedEdges.add(returnKey); // block the return of this newly traveled edge
+    }
+  }
+
+  return prob;
+}
+
+
+
+function sum(arr)
+{  let s=0;
+   for(let i=0;i<arr.length;i++)
+   s+=arr[i];
+return s;
+}
+function rround(x,k)
+{
+     return (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFixed(k);
+}
+   </script>
+</body>
+</html>

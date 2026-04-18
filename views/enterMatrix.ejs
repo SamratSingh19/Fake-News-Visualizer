@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Adjacency Matrix Input</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+
+        .controls {
+            margin: 20px;
+        }
+
+        .matrix {
+            display: grid;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .matrix input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .matrix input::-webkit-outer-spin-button,
+        .matrix input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+             margin: 0;
+        }
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        /* Keep your existing CSS as it is */
+
+/* Improve buttons only */
+button {
+    background:  #589ce9;
+    color: #fff;
+    border: none;
+    border-radius: 5px; /* small radius, won’t distort */
+    font-weight: 500;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background:  #4b86ca;
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
+/* Different color for submit button */
+form button[type="submit"] {
+    background:  #28a745
+}
+
+form button[type="submit"]:hover {
+    background:  #28a044
+}
+
+/* Optional: subtle input highlight (no size change) */
+.matrix input:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+    </style>
+</head>
+<body>
+
+    <h2>Adjacency Matrix Input</h2>
+
+    <div class="controls">
+        <button onclick="changeSize(-1)">➖ Decrease</button>
+        <span id="sizeDisplay">Size: 2 x 2</span>
+        <button onclick="changeSize(1)">➕ Increase</button>
+    </div>
+
+    <form method="POST" action="/submitText" onsubmit="prepareMatrix(event)">
+
+        <div id="matrixContainer" class="matrix"></div>
+
+        <!-- Hidden input to send text format -->
+        <input type="hidden" name="adjList" id="matrixText">
+
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        let size = 3;
+
+        function renderMatrix() {
+            const container = document.getElementById("matrixContainer");
+            container.innerHTML = "";
+
+            container.style.gridTemplateColumns = `repeat(${size}, auto)`;
+            document.getElementById("sizeDisplay").innerText = `Size: ${size} x ${size}`;
+
+            for (let i = 0; i < size; i++) {
+                for (let j = 0; j < size; j++) {
+                    let input = document.createElement("input");
+                    input.type = "number";
+                    input.step = "any"; 
+                    input.name = `cell-${i}-${j}`;
+                    // input.placeholder = "0";
+                    if(i===j)input.value=0;
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function changeSize(val) {
+            if (size + val >= 1) {
+                size += val;
+                renderMatrix();
+            }
+        }
+
+        function prepareMatrix(event) {
+            event.preventDefault();
+            let matrix = [];
+
+            for (let i = 0; i < size; i++) {
+                let row = [];
+                for (let j = 0; j < size; j++) {
+                    let val = document.querySelector(`[name="cell-${i}-${j}"]`).value;
+                    row.push(val === "" ? 0 : Number(val));
+                }
+                matrix.push(row);
+            }
+
+            document.getElementById("matrixText").value = JSON.stringify(matrix);
+                event.target.submit(); // Now submit after the hidden input is set
+        }
+
+        // Initial render
+        renderMatrix();
+    </script>
+
+</body>
+</html>
